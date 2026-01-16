@@ -1,0 +1,59 @@
+name: WDK-Wallet-Demo
+include:
+  - addons/addons.yml
+packages:
+  WDKClient:
+    path: ../WDKClient
+  BareKit:
+    url: https://github.com/holepunchto/bare-kit-swift
+    branch: main
+targets:
+  WDK-Wallet-Demo:
+    type: application
+    platform: iOS
+    deploymentTarget: 16.0
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tether.wdk-wallet-demo
+        SWIFT_VERSION: 5.0
+        INFOPLIST_FILE: WDK-Wallet-Demo/Info.plist
+    info:
+      path: WDK-Wallet-Demo/Info.plist
+      properties:
+        CFBundleDisplayName: WDK Wallet Demo
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    entitlements:
+      path: WDK-Wallet-Demo/WDK-Wallet-Demo.entitlements
+      properties:
+        com.apple.security.cs.allow-jit: true
+    dependencies:
+      - framework: frameworks/BareKit.xcframework
+      - package: WDKClient
+      - package: BareKit
+    sources:
+      - path: WDK-Wallet-Demo
+      - path: wdk-worklet.mobile.bundle
+        optional: true
+        buildPhase: resources
+    scheme:
+      preActions:
+        - name: Link
+          script: |
+            PATH="${PATH}" "${PWD}/../pear-wrk-wdk-jsonrpc/node_modules/.bin/bare-link" \
+              --preset ios \
+              --out "${PWD}/addons" \
+              "${PWD}/../pear-wrk-wdk-jsonrpc"
+        - name: Pack
+          script: |
+            PATH="${PATH}" "${PWD}/../pear-wrk-wdk-jsonrpc/node_modules/.bin/bare-pack" \
+              --preset ios \
+              --base "${PWD}/../pear-wrk-wdk-jsonrpc" \
+              --imports "${PWD}/../pear-wrk-wdk-jsonrpc/pack.imports.json" \
+              --out "${PWD}/wdk-worklet.mobile.bundle" \
+              "${PWD}/../pear-wrk-wdk-jsonrpc/src/wdk-worklet.js"

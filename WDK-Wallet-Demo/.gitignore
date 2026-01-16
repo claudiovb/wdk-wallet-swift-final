@@ -1,0 +1,12 @@
+*.xcodeproj
+*.xcworkspace
+Pods/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.app
+.swiftpm/
+.DS_Store
+wdk-worklet.mobile.bundle
+addons/*.xcframework
