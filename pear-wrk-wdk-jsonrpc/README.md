@@ -19,6 +19,8 @@ npm install
 
 ## Build Commands
 
+> **Note:** When building the iOS demo app in Xcode, the worklet is **automatically built** via pre-actions. These manual commands are only needed for testing the JavaScript code outside of Xcode or for standalone development.
+
 ### Build Worklet Bundle
 
 Generate the iOS worklet bundle:

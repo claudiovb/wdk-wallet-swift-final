@@ -29,8 +29,6 @@ You need to copy the `BareKit.xcframework` to the `frameworks/` directory:
 cp -r path/to/BareKit.xcframework WDK-Wallet-Demo/frameworks/
 ```
 
-Alternatively, the framework will be downloaded via Swift Package Manager from the BareKit repository.
-
 ### 2. Install Worklet Dependencies
 
 ```bash
@@ -38,25 +36,16 @@ cd ../pear-wrk-wdk-jsonrpc
 npm install
 ```
 
-### 3. Build Worklet Bundle
+### 3. Generate Xcode Project
 
 ```bash
-cd ../pear-wrk-wdk-jsonrpc
-npm run build:bundle
-```
-
-This creates `generated/wdk-worklet.mobile.bundle`.
-
-### 4. Generate Xcode Project
-
-```bash
-cd WDK-Wallet-Demo
+cd ../WDK-Wallet-Demo
 xcodegen generate
 ```
 
 This creates `WDK-Wallet-Demo.xcodeproj` from `project.yml`.
 
-### 5. Open in Xcode
+### 4. Open in Xcode
 
 ```bash
 open WDK-Wallet-Demo.xcodeproj
@@ -71,10 +60,14 @@ open WDK-Wallet-Demo.xcodeproj
 3. Press Cmd+B to build
 4. Press Cmd+R to run
 
-The pre-action script in the scheme will automatically:
+**Automatic Build Process:**
+The Xcode scheme pre-actions will automatically:
 
-- Build the worklet bundle if needed
-- Copy it to the app bundle
+1. Run `bare-link` to compile native addons for iOS
+2. Run `bare-pack` to bundle the JavaScript worklet
+3. Copy the bundle to the app
+
+No need to manually run `npm run build:bundle` - Xcode handles it!
 
 ### Using Command Line
 

@@ -63,18 +63,17 @@ git clone <repository-url>
 cd wdk-wallet-swift-final
 ```
 
-### 2. Build Worklet
+### 2. Install Dependencies
 
 ```bash
 cd pear-wrk-wdk-jsonrpc
 npm install
-npm run build:bundle
 ```
 
 ### 3. Copy BareKit Framework
 
 ```bash
-# Copy BareKit.xcframework to demo app
+# Copy BareKit.xcframework to demo app (from project root)
 cp -r /path/to/BareKit.xcframework WDK-Wallet-Demo/frameworks/
 ```
 
@@ -87,6 +86,8 @@ open WDK-Wallet-Demo.xcodeproj
 ```
 
 Press Cmd+R to run on simulator.
+
+**Automatic Bundling:** Xcode pre-actions will automatically run `bare-link` and `bare-pack` before each build - no manual bundling required!
 
 ## 📦 Components
 
@@ -104,10 +105,12 @@ Simplified JavaScript worklet with JSON-RPC 2.0 interface.
 **Build Commands:**
 
 ```bash
-npm run build:bundle      # Build iOS bundle
-npm run build:addons      # Build bare addons
-npm run build:all         # Build everything
+npm run build:bundle      # Build iOS bundle (manual, for testing)
+npm run build:addons      # Build bare addons (manual, for testing)
+npm run build:all         # Build everything (manual, for testing)
 ```
+
+**Note:** When building in Xcode, the worklet is automatically built via pre-actions. Manual building is only needed for testing the JavaScript code outside of Xcode.
 
 **Supported Networks:**
 
