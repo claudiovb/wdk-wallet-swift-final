@@ -1,6 +1,6 @@
-# WDK Swift Bridge - Production Ready
+# WDK Swift Bridge
 
-A production-ready, simplified implementation of the WDK (Web3 Development Kit) for iOS with Swift Package Manager support, JSON-RPC 2.0 protocol, and XcodeGen project generation.
+Simplified implementation of the WDK (Web3 Development Kit) for iOS with Swift Package Manager support, JSON-RPC 2.0 protocol, and XcodeGen project generation.
 
 ## 🎯 Overview
 
@@ -11,6 +11,7 @@ This repository provides a clean, documented codebase for integrating WDK multi-
 - **Demo iOS Application**: Complete example with XcodeGen configuration
 - **Multi-Chain Support**: Ethereum, Polygon, Arbitrum, Sepolia, Solana
 - **Account Abstraction**: ERC-4337 support for EVM chains
+-
 
 ## 📁 Repository Structure
 
