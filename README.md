@@ -12,42 +12,6 @@ This repository provides a clean, documented codebase for integrating WDK multi-
 - **Multi-Chain Support**: Ethereum, Polygon, Arbitrum, Sepolia, Solana
 - **Account Abstraction**: ERC-4337 support for EVM chains
 
-## 🏗️ Architecture
-
-```mermaid
-graph TB
-    subgraph DemoApp [WDK-Wallet-Demo iOS App]
-        App[App.swift]
-        ContentView[ContentView.swift]
-        Worklet[wdk-worklet.bundle]
-    end
-
-    subgraph SwiftPackage [WDKClient Swift Package]
-        Client[WDKClient.swift]
-        Types[WDKTypes.swift]
-        Errors[WDKError.swift]
-    end
-
-    subgraph JSWorklet [pear-wrk-wdk-jsonrpc]
-        WorkletJS[wdk-worklet.js]
-        Handlers[rpc-handlers.js]
-        Utils[utils/]
-        WDKCore[@tetherto/wdk]
-        WalletEVM[@tetherto/wdk-wallet-evm]
-        WalletERC4337[@tetherto/wdk-wallet-evm-erc-4337]
-        WalletSolana[@tetherto/wdk-wallet-solana]
-    end
-
-    DemoApp -->|imports| SwiftPackage
-    DemoApp -->|loads| Worklet
-    SwiftPackage -->|BareKit IPC| WorkletJS
-    WorkletJS -->|JSON-RPC 2.0| Handlers
-    Handlers -->|uses| WDKCore
-    Handlers -->|uses| WalletEVM
-    Handlers -->|uses| WalletERC4337
-    Handlers -->|uses| WalletSolana
-```
-
 ## 📁 Repository Structure
 
 ```
