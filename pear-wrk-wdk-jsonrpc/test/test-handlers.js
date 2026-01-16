@@ -64,7 +64,8 @@ async function runTests() {
       accountIndex: 0
     }, context)
     
-    const address = JSON.parse(addressResult.result)
+    // Result is returned directly now (not as JSON string)
+    const address = addressResult.result
     console.log('   ✅ Ethereum address:', address)
     
     // Test 6: Dispose

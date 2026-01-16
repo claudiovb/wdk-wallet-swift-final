@@ -11,6 +11,9 @@ public class WDKClient {
     private var isWorkletStarted = false
     private let bundleName: String
     
+    // Read buffer for framing (accessed sequentially via async/await)
+    private var readBuffer = Data()
+    
     /// Initialize WDKClient
     /// - Parameter bundleName: Name of the worklet bundle (default: "wdk-worklet.mobile")
     public init(bundleName: String = "wdk-worklet.mobile") {
@@ -48,13 +51,62 @@ public class WDKClient {
         }
     }
     
-    private func call(method: String, params: [String: Any]) async throws -> [String: Any] {
-        // Ensure worklet and IPC are ready
-        try await ensureWorkletStarted()
-        
+    // MARK: - Framing Methods
+    
+    /// Write a length-prefixed framed message: [4-byte length][message]
+    private func writeFramed(data: Data) async throws {
         guard let ipc = self.ipc else {
             throw WDKError.ipcError("IPC not initialized")
         }
+        
+        // Create 4-byte length prefix (big-endian UInt32)
+        var length = UInt32(data.count).bigEndian
+        let lengthData = Data(bytes: &length, count: 4)
+        
+        // Write length + data
+        try await ipc.write(data: lengthData + data)
+    }
+    
+    /// Read a length-prefixed framed message
+    private func readFramed() async throws -> Data {
+        // Read 4-byte length header
+        let lengthData = try await readExactly(bytes: 4)
+        let length = lengthData.withUnsafeBytes { 
+            $0.load(as: UInt32.self).bigEndian 
+        }
+        
+        // Validate message size (max 10MB for safety)
+        guard length > 0 && length < 10_000_000 else {
+            throw WDKError.ipcError("Invalid message length: \(length)")
+        }
+        
+        // Read exact message length
+        return try await readExactly(bytes: Int(length))
+    }
+    
+    /// Read exactly N bytes, buffering as needed
+    private func readExactly(bytes: Int) async throws -> Data {
+        guard let ipc = self.ipc else {
+            throw WDKError.ipcError("IPC not initialized")
+        }
+        
+        // Keep reading until we have enough bytes
+        while readBuffer.count < bytes {
+            guard let chunk = try await ipc.read() else {
+                throw WDKError.ipcError("Connection closed while reading")
+            }
+            readBuffer.append(chunk)
+        }
+        
+        // Extract exactly the bytes we need
+        let result = readBuffer.prefix(bytes)
+        readBuffer = readBuffer.dropFirst(bytes)
+        return Data(result)
+    }
+    
+    private func call(method: String, params: [String: Any]) async throws -> [String: Any] {
+        // Ensure worklet and IPC are ready
+        try await ensureWorkletStarted()
         
         let id = nextRequestId()
         
@@ -67,13 +119,11 @@ public class WDKClient {
         
         let requestData = try JSONSerialization.data(withJSONObject: request, options: [])
         
-        // Send request
-        try await ipc.write(data: requestData)
+        // Send framed request
+        try await writeFramed(data: requestData)
         
-        // Read response
-        guard let responseData = try await ipc.read() else {
-            throw WDKError.ipcError("No response from worklet")
-        }
+        // Read framed response
+        let responseData = try await readFramed()
         
         let obj = try JSONSerialization.jsonObject(with: responseData, options: [])
         guard let response = obj as? [String: Any] else {

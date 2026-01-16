@@ -33,18 +33,60 @@ const context = {
   }
 }
 
-// Listen for incoming JSON-RPC messages
-BareIPC.on('data', (data) => {
-  try {
-    const message = JSON.parse(data.toString())
+// === Length-Prefixed Framing ===
+// Buffer for accumulating incoming data
+let readBuffer = Buffer.alloc(0)
 
-    // Only handle if it's a JSON-RPC message (has 'jsonrpc' field)
-    if (message.jsonrpc === '2.0') {
-      handleJsonRpcMessage(message, context)
+/**
+ * Write a framed message: [4-byte length][message]
+ */
+function writeFramed (data) {
+  const length = Buffer.allocUnsafe(4)
+  length.writeUInt32BE(data.length, 0)
+  BareIPC.write(Buffer.concat([length, data]))
+}
+
+/**
+ * Process incoming data with framing
+ * Accumulates data in buffer and extracts complete messages
+ */
+function processFramedData (chunk) {
+  // Append new data to buffer
+  readBuffer = Buffer.concat([readBuffer, chunk])
+
+  // Try to extract complete messages
+  while (readBuffer.length >= 4) {
+    // Read message length from first 4 bytes
+    const messageLength = readBuffer.readUInt32BE(0)
+
+    // Check if we have the complete message
+    const totalLength = 4 + messageLength
+    if (readBuffer.length < totalLength) {
+      // Not enough data yet, wait for more
+      break
     }
-  } catch (e) {
-    logger.error('Failed to parse IPC message:', e)
+
+    // Extract the message
+    const messageData = readBuffer.slice(4, totalLength)
+    readBuffer = readBuffer.slice(totalLength)
+
+    // Process the complete message
+    try {
+      const message = JSON.parse(messageData.toString())
+
+      // Only handle if it's a JSON-RPC message (has 'jsonrpc' field)
+      if (message.jsonrpc === '2.0') {
+        handleJsonRpcMessage(message, context)
+      }
+    } catch (e) {
+      logger.error('Failed to parse framed message:', e)
+    }
   }
+}
+
+// Listen for incoming data chunks
+BareIPC.on('data', (data) => {
+  processFramedData(data)
 })
 
 /**
@@ -103,12 +145,13 @@ async function handleJsonRpcMessage (message, context) {
 
     logger.info(`JSON-RPC response: ${method}`, result)
 
-    // Send success response
-    BareIPC.write(JSON.stringify({
+    // Send success response with framing
+    const response = JSON.stringify({
       jsonrpc: '2.0',
       id,
       result
-    }))
+    })
+    writeFramed(Buffer.from(response))
   } catch (error) {
     logger.error(`JSON-RPC error: ${method}`, error)
 
@@ -129,12 +172,13 @@ async function handleJsonRpcMessage (message, context) {
       }
     }
 
-    // Send error response
-    BareIPC.write(JSON.stringify({
+    // Send error response with framing
+    const response = JSON.stringify({
       jsonrpc: '2.0',
       id,
       error: errorResponse
-    }))
+    })
+    writeFramed(Buffer.from(response))
   }
 }
 

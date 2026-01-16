@@ -22,6 +22,7 @@
     "bufferutil": "^4.1.0",
     "debug": "^4.4.3",
     "path": "npm:bare-node-path@^1.0.1",
+    "crypto": "npm:bare-node-crypto",
     "supports-color": "^10.2.2",
     "text-encoding": "0.7.0",
     "utf-8-validate": "^6.0.6"
