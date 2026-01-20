@@ -8,9 +8,10 @@
     "build:addons": "node scripts/link-bare-addons.js",
     "build:all": "npm run build:addons && npm run build:bundle",
     "clean": "rm -rf generated ios-addons",
-    "test:import": "bare test/test-wdk-import.js",
+    "test:import": "bare test/test-imports-only.js",
     "test:handlers": "bare test/test-handlers.js",
-    "test": "npm run test:import && npm run test:handlers"
+    "test:shamir": "bare test/test-shamir.js",
+    "test": "npm run test:import && npm run test:handlers && npm run test:shamir"
   },
   "dependencies": {
     "@scure/bip39": "^1.6.0",
@@ -20,12 +21,12 @@
     "@tetherto/wdk-wallet-solana": "^1.0.0-beta.3",
     "bare-pack": "^2.0.0",
     "bufferutil": "^4.1.0",
+    "crypto": "npm:bare-node-crypto",
     "debug": "^4.4.3",
     "path": "npm:bare-node-path@^1.0.1",
-    "crypto": "npm:bare-node-crypto",
     "supports-color": "^10.2.2",
     "text-encoding": "0.7.0",
-    "utf-8-validate": "^6.0.6"
+    "wdk-util-shamir-secret-sharing": "github:claudiovb/wdk-util-shamir-secret-sharing"
   },
   "devDependencies": {
     "bare-link": "^3.0.0"

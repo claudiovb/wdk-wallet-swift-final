@@ -1,6 +1,7 @@
 // External dependencies
 const { entropyToMnemonic, mnemonicToSeedSync, mnemonicToEntropy } = require('@scure/bip39')
 const { wordlist } = require('@scure/bip39/wordlists/english')
+const { split: shamirSplit, combine: shamirCombine } = require('wdk-util-shamir-secret-sharing')
 
 // WDK dependencies - Direct imports (no HRPC/code generation)
 const WDKModule = require('@tetherto/wdk')
@@ -472,6 +473,52 @@ const handlers = {
       }
     }
     return { status: 'registered' }
+  },
+
+  /**
+   * Split a BIP39 mnemonic into shares using Shamir Secret Sharing
+   * The library handles all mnemonic validation and conversions
+   */
+  async splitMnemonic (request) {
+    const { mnemonic, shares, threshold } = request
+
+    // Basic request validation
+    validateRequest(request, () => {
+      if (typeof mnemonic !== 'string') {
+        throw new Error('mnemonic must be a string')
+      }
+      validateNonNegativeInteger(shares, 'shares')
+      validateNonNegativeInteger(threshold, 'threshold')
+    })
+
+    // Library handles validation, encoding, splitting, and hex conversion
+    const hexShares = await shamirSplit(mnemonic, { shares, threshold })
+
+    return {
+      shares: hexShares,
+      threshold,
+      totalShares: shares
+    }
+  },
+
+  /**
+   * Combine shares to reconstruct a BIP39 mnemonic using Shamir Secret Sharing
+   * The library handles all share validation and conversions
+   */
+  async combineShares (request) {
+    const { shares } = request
+
+    // Basic request validation
+    validateRequest(request, () => {
+      if (!Array.isArray(shares)) {
+        throw new Error('shares must be an array')
+      }
+    })
+
+    // Library handles validation, hex decoding, combining, and mnemonic reconstruction
+    const mnemonic = await shamirCombine(shares)
+
+    return { mnemonic }
   },
 
   /**

@@ -9,6 +9,7 @@ Simplified JSON-RPC worklet for WDK (Web3 Development Kit). This worklet provide
 - **Multi-Chain Support**: Ethereum, Polygon, Arbitrum, Sepolia, Solana
 - **ERC-4337 Support**: Account abstraction for EVM chains
 - **Mnemonic Management**: Secure BIP39 mnemonic generation and handling
+- **Shamir Secret Sharing**: Split and combine mnemonics for secure backup strategies
 - **Encryption**: AES-256-GCM encryption for sensitive data
 
 ## Installation
@@ -148,6 +149,69 @@ Convert a mnemonic phrase to encrypted seed and entropy.
   "encryptedEntropyBuffer": "base64-encoded-encrypted-entropy"
 }
 ```
+
+### `splitMnemonic`
+
+Split a BIP39 mnemonic into shares using Shamir Secret Sharing. This enables secure backup strategies where any threshold number of shares can reconstruct the original mnemonic.
+
+**Parameters:**
+
+```json
+{
+  "mnemonic": "12 or 24 word phrase",
+  "shares": 5,      // Total number of shares to create (n), 2-255
+  "threshold": 3    // Minimum shares needed to reconstruct (k), 2-n
+}
+```
+
+**Example Configurations:**
+
+- `shares: 3, threshold: 2` - 2-of-3 backup (home, bank, family)
+- `shares: 5, threshold: 3` - 3-of-5 balanced security
+- `shares: 7, threshold: 5` - 5-of-7 high security multi-party
+
+**Returns:**
+
+```json
+{
+  "shares": ["hex-share-1", "hex-share-2", "hex-share-3", "hex-share-4", "hex-share-5"],
+  "threshold": 3,
+  "totalShares": 5
+}
+```
+
+**Security Notes:**
+
+- Store shares in physically separate, secure locations
+- Never store threshold or more shares together
+- Each share is hex-encoded for easy storage and transmission
+- Uses audited [shamir-secret-sharing](https://github.com/privy-io/shamir-secret-sharing) library
+
+### `combineShares`
+
+Reconstruct a BIP39 mnemonic from Shamir Secret Sharing shares.
+
+**Parameters:**
+
+```json
+{
+  "shares": ["hex-share-1", "hex-share-2", "hex-share-3"]
+}
+```
+
+**Returns:**
+
+```json
+{
+  "mnemonic": "12 or 24 word phrase"
+}
+```
+
+**Notes:**
+
+- Requires at least the threshold number of shares
+- Any valid subset of shares (meeting threshold) will reconstruct the same mnemonic
+- Shares must be hex-encoded strings from `splitMnemonic`
 
 ### `initializeWDK`
 
